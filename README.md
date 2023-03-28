@@ -12,3 +12,8 @@ We propose Egocentric Human Mesh Recovery (EgoHMR), a novel hierarchical network
 3) Quantitative and qualitative results on different datasets demonstrate the effectiveness of our proposed hierarchical network for both human mesh recovery and human pose estimation.
 
 <p align="center"><img src="misc/overview_v5.png" alt="figure1" width=100%/></p>
+
+## Brief Introduction
+
+https://user-images.githubusercontent.com/86871168/228259568-c66f03dc-fa0a-45dd-9a2e-da1a14c5de78.mp4
+
