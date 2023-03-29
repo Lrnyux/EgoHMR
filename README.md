@@ -15,5 +15,21 @@ We propose Egocentric Human Mesh Recovery (EgoHMR), a novel hierarchical network
 
 ## Brief Introduction
 
-https://user-images.githubusercontent.com/86871168/228259568-c66f03dc-fa0a-45dd-9a2e-da1a14c5de78.mp4
 
+https://user-images.githubusercontent.com/86871168/228405643-47a6620b-79ae-4cae-86bd-01e5406a4c1f.mp4
+
+
+
+## Citation
+If you find our paper/dataset/code useful, please consider citing:
+```bibtex
+@INPROCEEDINGS{liu2023Egohmr,
+  author={Liu, Yuxuan and Yang, Jianxin and Gu, Xiao and Guo, Yao and Yang, Guang-Zhong},
+  booktitle={2023 International Conference on Robotics and Automation (ICRA)}, 
+  title={EgoHMR: Egocentric Human Mesh Recovery via Hierarchical Latent Diffusion Model}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={},
+  doi={}}
+```
