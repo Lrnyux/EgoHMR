@@ -18,7 +18,12 @@ We propose Egocentric Human Mesh Recovery (EgoHMR), a novel hierarchical network
 
 https://user-images.githubusercontent.com/86871168/228405643-47a6620b-79ae-4cae-86bd-01e5406a4c1f.mp4
 
+## Dataset
+- [x] <b>ECHP Dataset</b> [[link](https://github.com/Lrnyux/EgoCentric-Human-Pose-ECHP-Dataset)]
+- [x] <b>EgoPW Dataset</b> [[link]([https://github.com/Lrnyux/EgoCentric-Human-Pose-ECHP-Dataset](https://people.mpi-inf.mpg.de/~jianwang/projects/egopw/))]
 
+## Code
+Related codes will be available in the future.
 
 ## Citation
 If you find our paper/dataset/code useful, please consider citing:
