@@ -20,7 +20,7 @@ https://user-images.githubusercontent.com/86871168/228405643-47a6620b-79ae-4cae-
 
 ## Dataset
 - [x] <b>ECHP Dataset</b> [[link](https://github.com/Lrnyux/EgoCentric-Human-Pose-ECHP-Dataset)]
-- [x] <b>EgoPW Dataset</b> [[link]([https://github.com/Lrnyux/EgoCentric-Human-Pose-ECHP-Dataset](https://people.mpi-inf.mpg.de/~jianwang/projects/egopw/))]
+- [x] <b>EgoPW Dataset</b> [[link](https://people.mpi-inf.mpg.de/~jianwang/projects/egopw/)]
 
 ## Code
 Related codes will be available in the future.
