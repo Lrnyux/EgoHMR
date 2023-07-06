@@ -1,5 +1,5 @@
 # EgoHMR
-[**ICRA 2023**] Repo for our paper "**EgoHMR: Egocentric Human Mesh Recovery via Hierarchical Latent Diffusion Model**" [[paper--coming soon]()]
+[**ICRA 2023**] Repo for our paper "**EgoHMR: Egocentric Human Mesh Recovery via Hierarchical Latent Diffusion Model**" [[PAPER](https://ieeexplore.ieee.org/document/10161247)]
 
 <p align="center"><img src="misc/flow_chart_v4.png" alt="figure1" width=50%/></p>
 
@@ -23,18 +23,18 @@ https://user-images.githubusercontent.com/86871168/228405643-47a6620b-79ae-4cae-
 - [x] <b>EgoPW Dataset</b> [[link](https://people.mpi-inf.mpg.de/~jianwang/projects/egopw/)]
 
 ## Code
-Related codes will be available in the future.
+- [x] Part of the code is adapted from [[Prohmr](https://github.com/nkolot/ProHMR)] [[Stable Diffusion](https://github.com/CompVis/latent-diffusion)] 
 
 ## Citation
 If you find our paper/dataset/code useful, please consider citing:
 ```bibtex
-@INPROCEEDINGS{liu2023Egohmr,
+@INPROCEEDINGS{liuegohmr,
   author={Liu, Yuxuan and Yang, Jianxin and Gu, Xiao and Guo, Yao and Yang, Guang-Zhong},
-  booktitle={2023 International Conference on Robotics and Automation (ICRA)}, 
+  booktitle={2023 IEEE International Conference on Robotics and Automation (ICRA)}, 
   title={EgoHMR: Egocentric Human Mesh Recovery via Hierarchical Latent Diffusion Model}, 
   year={2023},
   volume={},
   number={},
-  pages={},
-  doi={}}
+  pages={9807-9813},
+  doi={10.1109/ICRA48891.2023.10161247}}
 ```
