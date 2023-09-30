@@ -506,7 +506,123 @@ def main():
     LOGGER.info('Fininshing.')
 
 
+def test(save_path,model_path):
+    # ========================loading preparing=================================
+    args = parse_config()
+    LOGGER = ConsoleLogger('test_baseline_diff', 'test')
+    logdir = LOGGER.getLogFolder()
+    LOGGER.info(args)
+    cudnn.benchmark = args.BENCHMARK
+    cudnn.deterministic = args.DETERMINISTIC
+    cudnn.enabled = args.ENABLED
+    if args.model_cfg is None:
+        model_cfg = prohmr_config()
+    else:
+        model_cfg = get_config(args.model_cfg)
+    root1 = args.root_info
+    root2 = args.root_smpl
+    flag_initial = True
+    # ====================add dataset===========================================
+    test_dataset = wholedataset(root1, root2, stage='Val')
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, args.test_batch_size, shuffle=False, drop_last=True,
+                                                 num_workers=args.num_workers)
 
+    # ===================create the model and the loss functions================
+    feature_bone = create_backbone(model_cfg)
+    diff_bone = SMPLDiffusion(args, model_cfg)
+    discriminator = Discriminator()
+    smpl_bone = SMPLHead()
+    if torch.cuda.is_available():
+        device = torch.device(f'cuda:{args.gpu}')
+        feature_bone = feature_bone.cuda(device)
+        diff_bone = diff_bone.cuda(device)
+        discriminator = discriminator.cuda(device)
+        smpl_bone = smpl_bone.cuda(device)
+    if model_path:
+        if not os.path.isfile(model_path):
+            raise FileNotFoundError(f"No checkpoint found at {model_path}")
+        checkpoint = torch.load(model_path)
+        feature_bone.load_state_dict(checkpoint['feature_bone_state_dict'])
+        diff_bone.load_state_dict(checkpoint['diff_bone_state_dict'])
+        discriminator.load_state_dict(checkpoint['discriminator_state_dict'])
+        LOGGER.info(f'---------------Finishing loading models----------------')
+
+    # ================train process=============================================
+
+    LOGGER.info(f'---------------Begin Testing-----------------')
+    loss_distri_log = AverageMeter()
+    feature_bone.eval()
+    diff_bone.eval()
+    discriminator.eval()
+    with torch.no_grad():
+        for it, batch in enumerate(test_dataloader, 0):
+            batch_size = batch['img'].shape[0]
+            x = batch['img'].to(torch.float32).to(device)
+            conditioning_feats = feature_bone(x)
+
+            params_noise = torch.randn(batch_size, diff_bone.npose, device=x.device)
+            pred_smpl_params, pred_cam, x_T, pred_pose_6d = diff_bone(params_noise, conditioning_feats)
+            pred_cam = pred_cam.reshape(batch_size, 3)
+            output = {}
+            output['pred_cam'] = pred_cam.reshape(batch_size, 3)
+            output['pred_smpl_params'] = {k: v.clone() for k, v in pred_smpl_params.items()}
+            output['noise_params'] = x_T.detach()
+            output['conditioning_feats'] = conditioning_feats
+            output['pred_pose_6d'] = pred_pose_6d
+
+            # Compute model vertices, joints and the projected joints
+            pred_smpl_params['global_orient'] = pred_smpl_params['global_orient'].reshape(batch_size ,
+                                                                                          -1, 3, 3)
+            pred_smpl_params['body_pose'] = pred_smpl_params['body_pose'].reshape(batch_size , -1, 3,
+                                                                                  3)
+            pred_smpl_params['betas'] = pred_smpl_params['betas'].reshape(batch_size , -1)
+
+            # Fit in the SMPL model
+            smpl_output, _ = smpl_bone(global_orient=pred_smpl_params['global_orient'],
+                                       body_pose=pred_smpl_params['body_pose'], betas=pred_smpl_params['betas'])
+            pred_keypoints_3d = smpl_output.joints
+            pred_vertices = smpl_output.vertices
+            output['pred_keypoints_3d'] = pred_keypoints_3d.reshape(batch_size,  -1, 3)
+            output['pred_vertices'] = pred_vertices.reshape(batch_size, -1, 3)
+            loss_distribution = compute_loss(batch, output, diff_bone, model_cfg, train=True)
+
+            output['losses']['loss_distri'] = loss_distribution
+
+            smpl_output_ps, _ = smpl_bone(global_orient=batch['smpl_params']['global_orient'].to(device).view(batch_size,1,3,3),
+                                       body_pose=batch['smpl_params']['body_pose'].to(device), betas=batch['smpl_params']['betas'].to(device))
+            ps_keypoints_3d = smpl_output_ps.joints
+            ps_vertices = smpl_output_ps.vertices
+            output['pseudo_keypoints_3d'] = ps_keypoints_3d.reshape(batch_size, 1, -1, 3)
+            output['pseudo_vertices'] = ps_vertices.reshape(batch_size, 1, -1, 3)
+
+            for idx in range(batch_size):
+                DATA={}
+                DATA['img'] = batch['img'][idx].cpu().numpy()
+                DATA['pred_keypoints_3d'] = output['pred_keypoints_3d'][idx].cpu().numpy()
+                DATA['pred_poses_global'] = output['pred_smpl_params']['global_orient'][idx].cpu().numpy()
+                DATA['pred_poses_body']  = output['pred_smpl_params']['body_pose'][idx].cpu().numpy()
+                DATA['pred_betas'] = output['pred_smpl_params']['betas'][idx].cpu().numpy()
+                DATA['pred_vertices'] = output['pred_vertices'][idx].cpu().numpy()
+                DATA['gt_poses_global'] = batch['smpl_params']['global_orient'][idx].cpu().numpy().reshape(1,3,3)
+                DATA['gt_poses_body'] = batch['smpl_params']['body_pose'][idx].cpu().numpy()
+                DATA['gt_betas'] = batch['smpl_params']['betas'][idx].cpu().numpy()
+                DATA['pseudo_keypoints_3d'] = output['pseudo_keypoints_3d'][idx].cpu().numpy()
+                DATA['gt_vertices'] = output['pseudo_vertices'][idx].cpu().numpy()
+                DATA['img_root'] = batch['imgroot'][idx]
+                env_name = batch['imgenv'][idx]
+                frame_idx = str(batch['imgname'][idx].numpy())
+                save_root_per = os.path.join(save_path,env_name+'_'+str(frame_idx).zfill(5)+'.mat')
+                scipy.io.savemat(save_root_per,DATA)
+            # ===============Logging the info and Save the model============
+            loss_distri_log.update(output['losses']['loss_distri'], batch_size)
+            if it % args.freq_print_test == 0:
+                message = 'Loss_test_Distribution {loss_val_log.val:.5f} ({loss_val_log.ave:.5f})\t'.format(
+                    loss_val_log=loss_distri_log)
+                LOGGER.info(message)
+        message = 'Loss_test_Distribution {loss_val_log.val:.5f} ({loss_val_log.ave:.5f})\t'.format(
+                    loss_val_log=loss_distri_log)
+        LOGGER.info(message)
+    LOGGER.info('Fininshing Testing')
 
 
 if __name__ == '__main__':
