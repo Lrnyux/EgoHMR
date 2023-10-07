@@ -25,13 +25,6 @@ from PIL import Image
 import cv2
 import torchvision
 import logging
-from prohmr.configs import get_config, prohmr_config, dataset_config
-from prohmr.utils.geometry import rot6d_to_rotmat
-from prohmr.utils.geometry import aa_to_rotmat, perspective_projection
-from prohmr.models import SMPL, SMPLHead
-from prohmr.models.backbones import create_backbone
-from prohmr.models.discriminator import Discriminator
-from prohmr.models.losses import Keypoint3DLoss, Keypoint2DLoss, ParameterLoss
 from train.evaluate_joints import  eva_joints, p_mpjpe
 from tqdm import tqdm
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
